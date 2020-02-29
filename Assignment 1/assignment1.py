@@ -10,14 +10,16 @@ def process_video():
     if not video.isOpened():
         print("Error opening video")
 
-    part1(video)
-    part2(video)
+    basic_image_processing(video)
+    object_detection(video)
+
+    video.release()
 
     # Closes all the frames
     cv2.destroyAllWindows()
 
 
-def part1(video):
+def basic_image_processing(video):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out1 = cv2.VideoWriter('output1.mp4', fourcc, 30.0, (1920, 1080), 1)
     out2 = cv2.VideoWriter('output2.mp4', fourcc, 30.0, (1920, 1080), 0)
@@ -139,9 +141,9 @@ def part1(video):
     out_grab.release()
 
 
-def part2(video):
+def object_detection(video):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter('output7.mp4', fourcc, 30.0, (1920, 1080), 1)
+    out = cv2.VideoWriter('output7.mp4', fourcc, 30.0, (1920, 1080), 0)
 
     # Read video
     while True:
@@ -152,17 +154,37 @@ def part2(video):
             # Get timestamp of current frame (in seconds)
             frame_timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000
 
-            # Apply effect based on current timestamp
+        # Apply effect based on current timestamp
             if 25 > frame_timestamp > 20:
-                # Color
-                add_subtitle(frame, 'Color', 3)
-                out.write(frame)
-            else:
+                # Sobel horizontal edge detection
+                # converting to gray scale
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # remove noise
+                frame = cv2.GaussianBlur(frame, (3, 3), 0)
+                frame1 = cv2.Sobel(frame, cv2.CV_64F, 0, 1, ksize=5)
+                frame2 = cv2.Sobel(frame, cv2.CV_64F, 1, 0, ksize=5)
+
+                # Take absolute and convert back to 8U so we can print it
+                frame1 = np.absolute(frame1)
+                frame1 = np.uint8(frame1)
+                frame2 = np.absolute(frame2)
+                frame2 = np.uint8(frame2)
+                frame = frame1 + frame2
+                if frame_timestamp < 22.5:
+                    add_subtitle(frame1, 'Sobel vertical edge detection', 1)
+                    out.write(frame1)
+                elif frame_timestamp < 24:
+                    add_subtitle(frame2, 'Sobel horizonatal edge detection', 1)
+                    out.write(frame2)
+                else:
+                    add_subtitle(frame2, 'Sobel both directions edge detection', 1)
+                    out.write(frame)
+
+            elif frame_timestamp > 25:
                 break
         else:
             break
 
-    video.release()
     out.release()
 
 
