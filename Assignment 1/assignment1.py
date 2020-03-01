@@ -7,7 +7,7 @@ from moviepy.editor import VideoFileClip, concatenate_videoclips
 def process_video():
 
     output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
-    input_path = 'video2.mp4'
+    input_path = 'video3.mp4'
 
     # Read video file
     video = cv2.VideoCapture(input_path)
@@ -151,18 +151,19 @@ def basic_image_processing(video, output_path):
 def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (1920, 1080), 0)
-    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1920, 1080), 1)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
+        # frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
 
         if ret:
             # Get timestamp of current frame (in seconds)
             frame_timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000
 
-        # Apply effect based on current timestamp
+            # Apply effect based on current timestamp
             if 25 > frame_timestamp > 20:
                 # Sobel horizontal edge detection
                 # converting to gray scale
@@ -172,7 +173,7 @@ def object_detection(video, output_path):
                 frame1 = cv2.Sobel(frame, cv2.CV_64F, 0, 1, ksize=5)
                 frame2 = cv2.Sobel(frame, cv2.CV_64F, 1, 0, ksize=5)
 
-                # Take absolute and convert back to 8U so we can print it
+                # Take absolute and convert back to 8U so we can write it
                 frame1 = np.absolute(frame1)
                 frame1 = np.uint8(frame1)
                 frame2 = np.absolute(frame2)
@@ -182,7 +183,7 @@ def object_detection(video, output_path):
                     add_subtitle(frame1, 'Sobel vertical edge detection', 1)
                     out_sobel.write(frame1)
                 elif frame_timestamp < 24:
-                    add_subtitle(frame2, 'Sobel horizonatal edge detection', 1)
+                    add_subtitle(frame2, 'Sobel horizontal edge detection', 1)
                     out_sobel.write(frame2)
                 else:
                     add_subtitle(frame2, 'Sobel both directions edge detection', 1)
@@ -192,19 +193,17 @@ def object_detection(video, output_path):
                 output = frame.copy()
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 # detect circles in the image
-                circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1.2, 100)
+                circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 30)
                 # ensure at least some circles were found
                 if circles is not None:
                     # convert the (x, y) coordinates and radius of the circles to integers
                     circles = np.round(circles[0, :]).astype("int")
                     # loop over the (x, y) coordinates and radius of the circles
                     for (x, y, r) in circles:
-                        # draw the circle in the output image, then draw a rectangle
-                        # corresponding to the center of the circle
+                        # draw the circle in the output image
                         cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                        cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
                     # show the output image
-                    out_hough.write(np.hstack([frame, output]))
+                    out_hough.write(output)
 
             elif frame_timestamp > 35:
                 break
@@ -234,7 +233,7 @@ def join_videos(path):
 
     # Concatenate all videos in order and write the output
     final_clip = concatenate_videoclips(videos)
-    final_clip.write_videofile(path + "/final.mp4")
+    final_clip.write_videofile("final.mp4")
 
 
 def add_subtitle(frame, text, size):
