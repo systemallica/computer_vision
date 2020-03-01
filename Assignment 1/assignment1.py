@@ -1,17 +1,24 @@
+import os
 import cv2
 import numpy as np
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 
 def process_video():
+
+    output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
+    input_path = 'video2.mp4'
+
     # Read video file
-    video = cv2.VideoCapture('video2.mp4')
+    video = cv2.VideoCapture(input_path)
 
     # Check if camera opened successfully
     if not video.isOpened():
         print("Error opening video")
 
-    basic_image_processing(video)
-    object_detection(video)
+    basic_image_processing(video, output_path)
+    object_detection(video, output_path)
+    join_videos(output_path)
 
     video.release()
 
@@ -19,14 +26,14 @@ def process_video():
     cv2.destroyAllWindows()
 
 
-def basic_image_processing(video):
+def basic_image_processing(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out1 = cv2.VideoWriter('output1.mp4', fourcc, 30.0, (1920, 1080), 1)
-    out2 = cv2.VideoWriter('output2.mp4', fourcc, 30.0, (1920, 1080), 0)
-    out3 = cv2.VideoWriter('output3.mp4', fourcc, 30.0, (1920, 1080), 1)
-    out4 = cv2.VideoWriter('output4.mp4', fourcc, 30.0, (1920, 1080), 0)
-    out_blur = cv2.VideoWriter('output5.mp4', fourcc, 30.0, (1920, 1080), 1)
-    out_grab = cv2.VideoWriter('output6.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (1920, 1080), 1)
+    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (1920, 1080), 1)
+    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (1920, 1080), 1)
+    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (1920, 1080), 0)
 
     # Read video
     while True:
@@ -141,9 +148,10 @@ def basic_image_processing(video):
     out_grab.release()
 
 
-def object_detection(video):
+def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter('output7.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1920, 1080), 0)
 
     # Read video
     while True:
@@ -172,20 +180,61 @@ def object_detection(video):
                 frame = frame1 + frame2
                 if frame_timestamp < 22.5:
                     add_subtitle(frame1, 'Sobel vertical edge detection', 1)
-                    out.write(frame1)
+                    out_sobel.write(frame1)
                 elif frame_timestamp < 24:
                     add_subtitle(frame2, 'Sobel horizonatal edge detection', 1)
-                    out.write(frame2)
+                    out_sobel.write(frame2)
                 else:
                     add_subtitle(frame2, 'Sobel both directions edge detection', 1)
-                    out.write(frame)
+                    out_sobel.write(frame)
 
-            elif frame_timestamp > 25:
+            elif 35 > frame_timestamp > 25:
+                output = frame.copy()
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # detect circles in the image
+                circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1.2, 100)
+                # ensure at least some circles were found
+                if circles is not None:
+                    # convert the (x, y) coordinates and radius of the circles to integers
+                    circles = np.round(circles[0, :]).astype("int")
+                    # loop over the (x, y) coordinates and radius of the circles
+                    for (x, y, r) in circles:
+                        # draw the circle in the output image, then draw a rectangle
+                        # corresponding to the center of the circle
+                        cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                        cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                    # show the output image
+                    out_hough.write(np.hstack([frame, output]))
+
+            elif frame_timestamp > 35:
                 break
         else:
             break
 
-    out.release()
+    out_sobel.release()
+    out_hough.release()
+
+
+def join_videos(path):
+    files = []
+    videos = []
+
+    # Get a list of the files in the directory
+    for r, d, f in os.walk(path):
+        for file in f:
+            files.append(os.path.join(r, file))
+
+    # Sort by name
+    files = sorted(files, key=lambda i: int(os.path.splitext(os.path.basename(i))[0]))
+
+    # Create a VideoClip for each file
+    for file in files:
+        video = VideoFileClip(file)
+        videos.append(video)
+
+    # Concatenate all videos in order and write the output
+    final_clip = concatenate_videoclips(videos)
+    final_clip.write_videofile(path + "/final.mp4")
 
 
 def add_subtitle(frame, text, size):
