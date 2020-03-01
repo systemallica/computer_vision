@@ -150,13 +150,19 @@ def basic_image_processing(video, output_path):
 
 def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (1920, 1080), 0)
-    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1920, 1080), 1)
+    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (640, 480), 0)
+    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (640, 480), 1)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
+
+        width = int(640)
+        height = int(480)
+        dim = (width, height)
+        # resize image
+        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
 
         if ret:
             # Get timestamp of current frame (in seconds)
@@ -182,13 +188,35 @@ def object_detection(video, output_path):
             elif 35 > frame_timestamp > 32.5:
                 circle_detection(out_hough, frame, 1.2, 400)
 
-            elif frame_timestamp > 35:
+            elif 37 > frame_timestamp > 35:
+                object_highlight(out_hough, frame, 1.2, 400)
+
+            # elif 40 > frame_timestamp > 37:
+
+            elif frame_timestamp > 39.8:
                 break
         else:
             break
 
     out_sobel.release()
     out_hough.release()
+
+
+def object_highlight(out, frame, dp, min_distance):
+    output = frame.copy()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # detect circles in the image
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40, maxRadius=200)
+    # ensure at least some circles were found
+    if circles is not None:
+        # convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.round(circles[0, :]).astype("int")
+        # loop over the (x, y) coordinates and radius of the circles
+        for (x, y, r) in circles:
+            # draw a rectangle around the detected circle
+            cv2.rectangle(output, (x - (r + 5), y - (r + 5)), (x + (r + 5), y + (r + 5)), (0, 255, 0), 2)
+        # show the output image
+        out.write(output)
 
 
 def edge_detection(out, frame, k, direction):
