@@ -164,46 +164,23 @@ def object_detection(video, output_path):
             frame_timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000
 
             # Apply effect based on current timestamp
-            if 25 > frame_timestamp > 20:
-                # Sobel horizontal edge detection
-                # converting to gray scale
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                # remove noise
-                frame = cv2.GaussianBlur(frame, (3, 3), 0)
-                frame1 = cv2.Sobel(frame, cv2.CV_64F, 0, 1, ksize=5)
-                frame2 = cv2.Sobel(frame, cv2.CV_64F, 1, 0, ksize=5)
+            if 22.5 > frame_timestamp > 20:
+                edge_detection(out_sobel, frame, 5, 'combined')
 
-                # Take absolute and convert back to 8U so we can write it
-                frame1 = np.absolute(frame1)
-                frame1 = np.uint8(frame1)
-                frame2 = np.absolute(frame2)
-                frame2 = np.uint8(frame2)
-                frame = frame1 + frame2
-                if frame_timestamp < 22.5:
-                    add_subtitle(frame1, 'Sobel vertical edge detection', 1)
-                    out_sobel.write(frame1)
-                elif frame_timestamp < 24:
-                    add_subtitle(frame2, 'Sobel horizontal edge detection', 1)
-                    out_sobel.write(frame2)
-                else:
-                    add_subtitle(frame2, 'Sobel both directions edge detection', 1)
-                    out_sobel.write(frame)
+            elif 25 > frame_timestamp > 22.5:
+                edge_detection(out_sobel, frame, 10, 'combined')
 
-            elif 35 > frame_timestamp > 25:
-                output = frame.copy()
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                # detect circles in the image
-                circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 30)
-                # ensure at least some circles were found
-                if circles is not None:
-                    # convert the (x, y) coordinates and radius of the circles to integers
-                    circles = np.round(circles[0, :]).astype("int")
-                    # loop over the (x, y) coordinates and radius of the circles
-                    for (x, y, r) in circles:
-                        # draw the circle in the output image
-                        cv2.circle(output, (x, y), r, (0, 255, 0), 4)
-                    # show the output image
-                    out_hough.write(output)
+            elif 27.5 > frame_timestamp > 25:
+                circle_detection(out_hough, frame, 1, 1)
+
+            elif 30 > frame_timestamp > 27.5:
+                circle_detection(out_hough, frame, 1, 30)
+
+            elif 32.5 > frame_timestamp > 30:
+                circle_detection(out_hough, frame, 1, 50)
+
+            elif 35 > frame_timestamp > 32.5:
+                circle_detection(out_hough, frame, 1, 100)
 
             elif frame_timestamp > 35:
                 break
@@ -212,6 +189,53 @@ def object_detection(video, output_path):
 
     out_sobel.release()
     out_hough.release()
+
+
+def edge_detection(out, frame, k, direction):
+    # Sobel horizontal edge detection
+    # converting to gray scale
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # remove noise
+    frame = cv2.GaussianBlur(frame, (3, 3), 0)
+    frame1 = cv2.Sobel(frame, cv2.CV_64F, 0, 1, ksize=k)
+    frame2 = cv2.Sobel(frame, cv2.CV_64F, 1, 0, ksize=k)
+
+    # Take absolute and convert back to 8U so we can write it
+    # Vertical
+    frame1 = np.absolute(frame1)
+    frame1 = np.uint8(frame1)
+    # Horizontal
+    frame2 = np.absolute(frame2)
+    frame2 = np.uint8(frame2)
+    # Combined
+    frame = frame1 + frame2
+
+    if direction == 'vertical':
+        add_subtitle(frame1, 'Sobel vertical edge detection', 1)
+        out.write(frame1)
+    elif direction == 'horizontal':
+        add_subtitle(frame2, 'Sobel horizontal edge detection', 1)
+        out.write(frame2)
+    else:
+        add_subtitle(frame2, 'Sobel both directions edge detection', 1)
+        out.write(frame)
+
+
+def circle_detection(out, frame, dp, min_distance):
+    output = frame.copy()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # detect circles in the image
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance)
+    # ensure at least some circles were found
+    if circles is not None:
+        # convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.round(circles[0, :]).astype("int")
+        # loop over the (x, y) coordinates and radius of the circles
+        for (x, y, r) in circles:
+            # draw the circle in the output image
+            cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+        # show the output image
+        out.write(output)
 
 
 def join_videos(path):
