@@ -157,30 +157,30 @@ def object_detection(video, output_path):
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
-        # frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
 
         if ret:
             # Get timestamp of current frame (in seconds)
             frame_timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000
+            print(frame_timestamp)
 
             # Apply effect based on current timestamp
             if 22.5 > frame_timestamp > 20:
                 edge_detection(out_sobel, frame, 5, 'combined')
 
             elif 25 > frame_timestamp > 22.5:
-                edge_detection(out_sobel, frame, 10, 'combined')
+                edge_detection(out_sobel, frame, 11, 'combined')
 
             elif 27.5 > frame_timestamp > 25:
-                circle_detection(out_hough, frame, 1, 1)
+                circle_detection(out_hough, frame, 1.2, 100)
 
             elif 30 > frame_timestamp > 27.5:
-                circle_detection(out_hough, frame, 1, 30)
+                circle_detection(out_hough, frame, 1.2, 200)
 
             elif 32.5 > frame_timestamp > 30:
-                circle_detection(out_hough, frame, 1, 50)
+                circle_detection(out_hough, frame, 1.2, 300)
 
             elif 35 > frame_timestamp > 32.5:
-                circle_detection(out_hough, frame, 1, 100)
+                circle_detection(out_hough, frame, 1.2, 400)
 
             elif frame_timestamp > 35:
                 break
@@ -225,7 +225,7 @@ def circle_detection(out, frame, dp, min_distance):
     output = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40, maxRadius=200)
     # ensure at least some circles were found
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers
