@@ -5,7 +5,6 @@ from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 
 def process_video():
-
     output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
     input_path = 'video3.mp4'
 
@@ -152,6 +151,7 @@ def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (640, 480), 0)
     out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (640, 480), 1)
+    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (640, 480), 1)
 
     # Read video
     while True:
@@ -197,7 +197,8 @@ def object_detection(video, output_path):
             elif 37 > frame_timestamp > 35:
                 object_highlight(out_hough, frame, 1.2, 400)
 
-            # elif 40 > frame_timestamp > 37:
+            elif 39.8 > frame_timestamp > 37:
+                intensity_detection(out_intensity, frame, 1.2, 400)
 
             elif frame_timestamp > 39.8:
                 break
@@ -208,11 +209,51 @@ def object_detection(video, output_path):
     out_hough.release()
 
 
+def intensity_detection(out, frame, dp, min_distance):
+    roi = frame.copy()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # detect circles in the image
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40,
+                               maxRadius=200)
+    # ensure at least some circles were found
+    if circles is not None:
+        # convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.round(circles[0, :]).astype("int")
+        # # loop over the (x, y) coordinates and radius of the circles
+        for (x, y, r) in circles:
+            # draw a rectangle around the detected circle
+            roi = roi[y:y+r, x:x+r].copy()
+            # cv2.rectangle(output, (x - (r + 5), y - (r + 5)), (x + (r + 5), y + (r + 5)), (0, 255, 0), 2)
+
+        # roi is the object or region of object we need to find
+        hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        # target is the image we search in
+        target = frame
+        hsvt = cv2.cvtColor(target, cv2.COLOR_BGR2HSV)
+
+        # calculating object histogram
+        M = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
+        # normalize histogram and apply backprojection
+        cv2.normalize(M, M, 0, 255, cv2.NORM_MINMAX)
+        B = cv2.calcBackProject([hsvt], [0, 1], M, [0, 180, 0, 256], 1)
+        cv2.normalize(B, B, 0, 255, cv2.NORM_MINMAX)
+        # Use thresholding to segment out the region
+        ret, thresh = cv2.threshold(B, 10, 255, 0)
+
+        # Overlay images using bitwise_and
+        thresh = cv2.merge((thresh, thresh, thresh))
+        res = cv2.bitwise_and(target, thresh)
+
+        # show the output image
+        out.write(res)
+
+
 def object_highlight(out, frame, dp, min_distance):
     output = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40, maxRadius=200)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40,
+                               maxRadius=200)
     # ensure at least some circles were found
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers
@@ -255,7 +296,8 @@ def circle_detection(out, frame, dp, min_distance):
     output = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40, maxRadius=200)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40,
+                               maxRadius=200)
     # ensure at least some circles were found
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers
