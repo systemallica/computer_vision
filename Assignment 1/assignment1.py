@@ -170,11 +170,17 @@ def object_detection(video, output_path):
             print(frame_timestamp)
 
             # Apply effect based on current timestamp
-            if 22.5 > frame_timestamp > 20:
-                edge_detection(out_sobel, frame, 5, 'combined')
+            if 21.25 > frame_timestamp > 20:
+                edge_detection(out_sobel, frame, 3, 'horizontal')
 
-            elif 25 > frame_timestamp > 22.5:
-                edge_detection(out_sobel, frame, 11, 'combined')
+            elif 22.75 > frame_timestamp > 21.25:
+                edge_detection(out_sobel, frame, 5, 'vertical')
+
+            elif 23.5 > frame_timestamp > 22.75:
+                edge_detection(out_sobel, frame, 3, 'vertical')
+
+            elif 25 > frame_timestamp > 23.5:
+                edge_detection(out_sobel, frame, 5, 'vertical')
 
             elif 27.5 > frame_timestamp > 25:
                 circle_detection(out_hough, frame, 1.2, 100)
@@ -221,10 +227,11 @@ def object_highlight(out, frame, dp, min_distance):
 
 def edge_detection(out, frame, k, direction):
     # Sobel horizontal edge detection
-    # converting to gray scale
+    # Converting to gray scale
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    # remove noise
+    # Remove noise
     frame = cv2.GaussianBlur(frame, (3, 3), 0)
+    # Detect edges
     frame1 = cv2.Sobel(frame, cv2.CV_64F, 0, 1, ksize=k)
     frame2 = cv2.Sobel(frame, cv2.CV_64F, 1, 0, ksize=k)
 
@@ -235,18 +242,13 @@ def edge_detection(out, frame, k, direction):
     # Horizontal
     frame2 = np.absolute(frame2)
     frame2 = np.uint8(frame2)
-    # Combined
-    frame = frame1 + frame2
 
     if direction == 'vertical':
-        add_subtitle(frame1, 'Sobel vertical edge detection', 1)
+        add_subtitle(frame1, 'Sobel vertical edge detection ' + str(k), 1)
         out.write(frame1)
     elif direction == 'horizontal':
-        add_subtitle(frame2, 'Sobel horizontal edge detection', 1)
+        add_subtitle(frame2, 'Sobel horizontal edge detection' + str(k), 1)
         out.write(frame2)
-    else:
-        add_subtitle(frame2, 'Sobel both directions edge detection', 1)
-        out.write(frame)
 
 
 def circle_detection(out, frame, dp, min_distance):
