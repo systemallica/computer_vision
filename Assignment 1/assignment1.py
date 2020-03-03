@@ -27,17 +27,23 @@ def process_video():
 
 def basic_image_processing(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (1920, 1080), 1)
-    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (1920, 1080), 0)
-    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (1920, 1080), 1)
-    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (1920, 1080), 0)
-    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (1920, 1080), 1)
-    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (1920, 1080), 0)
+    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (1024, 768), 1)
+    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (1024, 768), 0)
+    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (1024, 768), 1)
+    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (1024, 768), 0)
+    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (1024, 768), 1)
+    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (1024, 768), 0)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
+
+        width = int(1024)
+        height = int(768)
+        dim = (width, height)
+        # resize image
+        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
 
         if ret:
             # Get timestamp of current frame (in seconds)
@@ -46,23 +52,19 @@ def basic_image_processing(video, output_path):
             # Apply effect based on current timestamp
             if 1 > frame_timestamp >= 0:
                 # Color
-                add_subtitle(frame, 'Color', 3)
                 out1.write(frame)
 
             elif 2 > frame_timestamp > 1:
                 # Black and white
-                add_subtitle(frame, 'B&W', 3)
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 out2.write(frame)
 
             elif 3 > frame_timestamp > 2:
                 # Color
-                add_subtitle(frame, 'Color', 3)
                 out3.write(frame)
 
             elif 4 > frame_timestamp > 3:
                 # Black and white
-                add_subtitle(frame, 'B&W', 3)
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 out4.write(frame)
 
@@ -70,27 +72,23 @@ def basic_image_processing(video, output_path):
                 # Gaussian smoothing
                 kernel_size = 11
                 frame = cv2.GaussianBlur(frame, (kernel_size, kernel_size), 0)
-                add_subtitle(frame, 'Gaussian Blur. Kernel size: ' + str(kernel_size), 1)
                 out_blur.write(frame)
 
             elif 8 > frame_timestamp > 6:
                 # Gaussian smoothing
                 kernel_size = 19
                 frame = cv2.GaussianBlur(frame, (kernel_size, kernel_size), 0)
-                add_subtitle(frame, 'Gaussian Blur. Kernel size: ' + str(kernel_size), 1)
                 out_blur.write(frame)
 
             elif 10 > frame_timestamp > 8:
                 # Gaussian smoothing
                 kernel_size = 29
                 frame = cv2.GaussianBlur(frame, (kernel_size, kernel_size), 0)
-                add_subtitle(frame, 'Gaussian Blur. Kernel size: ' + str(kernel_size), 1)
                 out_blur.write(frame)
 
             elif 12 > frame_timestamp > 10:
                 # Bilateral smoothing
                 frame = cv2.bilateralFilter(frame, 20, 100, 100)
-                add_subtitle(frame, 'Bilateral filter(edges are preserved)', 1)
                 out_blur.write(frame)
 
             elif 16 > frame_timestamp > 12:
@@ -99,7 +97,6 @@ def basic_image_processing(video, output_path):
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 # Apply binary threshold
                 ret, frame = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY_INV)
-                add_subtitle(frame, 'Grabbing red object RGB', 1)
                 out_grab.write(frame)
 
             elif 18 > frame_timestamp > 16:
@@ -114,7 +111,6 @@ def basic_image_processing(video, output_path):
                 # Merge the mask
                 # It is a B&W image
                 frame = cv2.bitwise_or(mask_lower, mask_upper)
-                add_subtitle(frame, 'Grabbing red object HSV', 1)
                 out_grab.write(frame)
 
             elif 20 > frame_timestamp > 18:
@@ -131,7 +127,6 @@ def basic_image_processing(video, output_path):
                 frame = cv2.bitwise_or(mask_lower, mask_upper)
                 kernel = np.ones((5, 5), np.uint8)
                 frame = cv2.morphologyEx(frame, cv2.MORPH_OPEN, kernel)
-                add_subtitle(frame, 'Improved grabbing red object HSV', 1)
                 out_grab.write(frame)
 
             else:
@@ -149,17 +144,17 @@ def basic_image_processing(video, output_path):
 
 def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (640, 480), 0)
-    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (640, 480), 1)
-    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (640, 480), 1)
+    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (1024, 768), 0)
+    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1024, 768), 1)
+    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (1024, 768), 1)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(640)
-        height = int(480)
+        width = int(1024)
+        height = int(768)
         dim = (width, height)
         # resize image
         frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
@@ -183,16 +178,16 @@ def object_detection(video, output_path):
                 edge_detection(out_sobel, frame, 5, 'vertical')
 
             elif 27.5 > frame_timestamp > 25:
-                circle_detection(out_hough, frame, 1.2, 100)
-
-            elif 30 > frame_timestamp > 27.5:
-                circle_detection(out_hough, frame, 1.2, 200)
-
-            elif 32.5 > frame_timestamp > 30:
                 circle_detection(out_hough, frame, 1.2, 300)
 
-            elif 35 > frame_timestamp > 32.5:
+            elif 30 > frame_timestamp > 27.5:
                 circle_detection(out_hough, frame, 1.2, 400)
+
+            elif 32.5 > frame_timestamp > 30:
+                circle_detection(out_hough, frame, 1.2, 450)
+
+            elif 35 > frame_timestamp > 32.5:
+                circle_detection(out_hough, frame, 1.2, 500)
 
             elif 37 > frame_timestamp > 35:
                 object_highlight(out_hough, frame, 1.2, 400)
