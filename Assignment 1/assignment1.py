@@ -169,7 +169,7 @@ def object_detection(video, output_path):
                 edge_detection(out_sobel, frame, 3, 'horizontal')
 
             elif 22.75 > frame_timestamp > 21.25:
-                edge_detection(out_sobel, frame, 5, 'vertical')
+                edge_detection(out_sobel, frame, 5, 'horizontal')
 
             elif 23.5 > frame_timestamp > 22.75:
                 edge_detection(out_sobel, frame, 3, 'vertical')
@@ -280,10 +280,8 @@ def edge_detection(out, frame, k, direction):
     frame2 = np.uint8(frame2)
 
     if direction == 'vertical':
-        add_subtitle(frame1, 'Sobel vertical edge detection ' + str(k), 1)
         out.write(frame1)
     elif direction == 'horizontal':
-        add_subtitle(frame2, 'Sobel horizontal edge detection' + str(k), 1)
         out.write(frame2)
 
 
