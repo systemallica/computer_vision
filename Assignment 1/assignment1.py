@@ -6,20 +6,24 @@ from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 def process_video():
     output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
-    input_path = 'video3.mp4'
+    input_path_1 = 'video3.mp4'
+    input_path_2 = 'video4.mp4'
 
     # Read video file
-    video = cv2.VideoCapture(input_path)
+    video_1 = cv2.VideoCapture(input_path_1)
+    video_2 = cv2.VideoCapture(input_path_2)
 
     # Check if camera opened successfully
-    if not video.isOpened():
+    if not video_1.isOpened() or video_2.isOpened():
         print("Error opening video")
 
-    basic_image_processing(video, output_path)
-    object_detection(video, output_path)
+    basic_image_processing(video_1, output_path)
+    object_detection(video_1, output_path)
+    carte_blanche(video_2, output_path)
     join_videos(output_path)
 
-    video.release()
+    video_1.release()
+    video_2.release()
 
     # Closes all the frames
     cv2.destroyAllWindows()
@@ -219,7 +223,7 @@ def intensity_detection(out, frame, dp, min_distance):
         # # loop over the (x, y) coordinates and radius of the circles
         for (x, y, r) in circles:
             # draw a rectangle around the detected circle
-            roi = roi[y:y+r, x:x+r].copy()
+            roi = roi[y:y + r, x:x + r].copy()
             # cv2.rectangle(output, (x - (r + 5), y - (r + 5)), (x + (r + 5), y + (r + 5)), (0, 255, 0), 2)
 
         # roi is the object or region of object we need to find
@@ -303,6 +307,58 @@ def circle_detection(out, frame, dp, min_distance):
             cv2.circle(output, (x, y), r, (0, 255, 0), 4)
         # show the output image
         out.write(output)
+
+
+def carte_blanche(video, output_path):
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_path + '/10.mp4', fourcc, 30.0, (1024, 576), 1)
+    # Pre-trained Cascade Classifier models for face and eye detection
+    # Path depends on OpenCV installation directory
+    face_cascade_name = '/Users/systemallica/anaconda3/lib/python3.7/site-packages/cv2/data/haarcascade_frontalface_default.xml'
+    eyes_cascade_name = '/Users/systemallica/anaconda3/lib/python3.7/site-packages/cv2/data/haarcascade_eye.xml'
+    face_cascade = cv2.CascadeClassifier(face_cascade_name)
+    eye_cascade = cv2.CascadeClassifier(eyes_cascade_name)
+
+    # Read video
+    while True:
+        # Capture frame-by-frame
+        ret, frame = video.read()
+
+        width = int(1024)
+        height = int(576)
+        dim = (width, height)
+        # resize image
+        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+
+        if ret:
+            # Get timestamp of current frame (in seconds)
+            frame_timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000
+            print(frame_timestamp)
+
+            # Apply effect based on current timestamp
+            if 14 > frame_timestamp >= 0:
+                # detect_face(frame)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+                for (x, y, w, h) in faces:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                    roi_gray = gray[y:y + h, x:x + w]
+                    roi_color = frame[y:y + h, x:x + w]
+                    eyes = eye_cascade.detectMultiScale(roi_gray, 1.3, 20)
+                    # I don't have more than two eyes
+                    eyes = eyes[0:2]
+                    for (ex, ey, ew, eh) in eyes:
+                        cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+
+                out.write(frame)
+
+            elif frame_timestamp > 14:
+                break
+
+    out.release()
+    cv2.destroyAllWindows()
 
 
 def join_videos(path):
