@@ -376,7 +376,7 @@ def carte_blanche(video, output_path):
                         sub_img = roi_color[ey:ey + eh, ex:ex + ew]
                         white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 255
                         res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)
-                        frame[ey:ey+eh, ex:ex+ew] = res
+                        roi_color[ey:ey+eh, ex:ex+ew] = res
 
                         cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
 
