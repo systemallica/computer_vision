@@ -340,7 +340,7 @@ def carte_blanche(video, output_path):
             print(frame_timestamp)
 
             # Apply effect based on current timestamp
-            if 14 > frame_timestamp >= 0:
+            if 10 > frame_timestamp >= 0:
                 # detect_face(frame)
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -354,6 +354,30 @@ def carte_blanche(video, output_path):
                     # I don't have more than two eyes
                     eyes = eyes[0:2]
                     for (ex, ey, ew, eh) in eyes:
+                        cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+
+                out.write(frame)
+
+            elif 14 > frame_timestamp > 10:
+                # detect_face(frame)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+                for (x, y, w, h) in faces:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                    roi_gray = gray[y:y + h, x:x + w]
+                    roi_color = frame[y:y + h, x:x + w]
+                    eyes = eye_cascade.detectMultiScale(roi_gray, 1.3, 20)
+                    # I don't have more than two eyes
+                    eyes = eyes[0:2]
+                    for (ex, ey, ew, eh) in eyes:
+                        # Change eye color with added white filter
+                        sub_img = roi_color[ey:ey + eh, ex:ex + ew]
+                        white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 255
+                        res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)
+                        frame[ey:ey+eh, ex:ex+ew] = res
+
                         cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
 
                 out.write(frame)
