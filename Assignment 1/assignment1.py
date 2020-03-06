@@ -211,6 +211,8 @@ def object_detection(video, output_path):
 
 
 def intensity_detection(out, frame, dp, min_distance):
+    # resize to 'square' image so intensity detection works
+    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
     roi = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
@@ -224,7 +226,6 @@ def intensity_detection(out, frame, dp, min_distance):
         for (x, y, r) in circles:
             # draw a rectangle around the detected circle
             roi = roi[y:y + r, x:x + r].copy()
-            # cv2.rectangle(output, (x - (r + 5), y - (r + 5)), (x + (r + 5), y + (r + 5)), (0, 255, 0), 2)
 
         # roi is the object or region of object we need to find
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
@@ -244,6 +245,9 @@ def intensity_detection(out, frame, dp, min_distance):
         # Overlay images using bitwise_and
         thresh = cv2.merge((thresh, thresh, thresh))
         res = cv2.bitwise_and(target, thresh)
+
+        # Resize back to original size
+        res = cv2.resize(res, (1024, 576), interpolation=cv2.INTER_AREA)
 
         # show the output image
         out.write(res)
