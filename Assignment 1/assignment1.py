@@ -350,8 +350,6 @@ def carte_blanche(video, output_path):
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
                     roi_gray = gray[y:y + h, x:x + w]
                     roi_color = frame[y:y + h, x:x + w]
-                    # Change eye color by changing color space
-                    roi_color = cv2.cvtColor(roi_color, cv2.COLOR_BGR2HSV)
                     eyes = eye_cascade.detectMultiScale(roi_gray, 1.3, 20)
                     # I don't have more than two eyes
                     eyes = eyes[0:2]
