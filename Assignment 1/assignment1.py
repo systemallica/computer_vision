@@ -14,7 +14,7 @@ def process_video():
     video_2 = cv2.VideoCapture(input_path_2)
 
     # Check if camera opened successfully
-    if not video_1.isOpened() or video_2.isOpened():
+    if not video_1.isOpened() or not video_2.isOpened():
         print("Error opening video")
 
     basic_image_processing(video_1, output_path)
@@ -350,6 +350,8 @@ def carte_blanche(video, output_path):
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
                     roi_gray = gray[y:y + h, x:x + w]
                     roi_color = frame[y:y + h, x:x + w]
+                    # Change eye color by changing color space
+                    roi_color = cv2.cvtColor(roi_color, cv2.COLOR_BGR2HSV)
                     eyes = eye_cascade.detectMultiScale(roi_gray, 1.3, 20)
                     # I don't have more than two eyes
                     eyes = eyes[0:2]
@@ -372,6 +374,8 @@ def join_videos(path):
     # Get a list of the files in the directory
     for r, d, f in os.walk(path):
         for file in f:
+            if file == '.DS_Store':
+                continue
             files.append(os.path.join(r, file))
 
     # Sort by name
