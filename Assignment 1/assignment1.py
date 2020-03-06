@@ -27,20 +27,20 @@ def process_video():
 
 def basic_image_processing(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (640, 480), 1)
-    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (640, 480), 0)
-    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (640, 480), 1)
-    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (640, 480), 0)
-    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (640, 480), 1)
-    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (640, 480), 0)
+    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (1024, 576), 1)
+    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (1024, 576), 0)
+    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (1024, 576), 1)
+    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (1024, 576), 0)
+    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (1024, 576), 1)
+    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (1024, 576), 0)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(640)
-        height = int(480)
+        width = int(1024)
+        height = int(576)
         dim = (width, height)
         # resize image
         frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
@@ -48,6 +48,7 @@ def basic_image_processing(video, output_path):
         if ret:
             # Get timestamp of current frame (in seconds)
             frame_timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000
+            print(frame_timestamp)
 
             # Apply effect based on current timestamp
             if 1 > frame_timestamp >= 0:
@@ -144,17 +145,17 @@ def basic_image_processing(video, output_path):
 
 def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (640, 480), 0)
-    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (640, 480), 1)
-    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (640, 480), 1)
+    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (1024, 576), 0)
+    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1024, 576), 1)
+    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (1024, 576), 1)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(640)
-        height = int(480)
+        width = int(1024)
+        height = int(576)
         dim = (width, height)
         # resize image
         frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
@@ -202,6 +203,7 @@ def object_detection(video, output_path):
 
     out_sobel.release()
     out_hough.release()
+    out_intensity.release()
 
 
 def intensity_detection(out, frame, dp, min_distance):
@@ -323,10 +325,6 @@ def join_videos(path):
     # Concatenate all videos in order and write the output
     final_clip = concatenate_videoclips(videos)
     final_clip.write_videofile("final.mp4")
-
-
-def add_subtitle(frame, text, size):
-    cv2.putText(frame, text, (10, 450), cv2.FONT_HERSHEY_SIMPLEX, size, (0, 255, 0), 2, cv2.LINE_AA)
 
 
 process_video()
