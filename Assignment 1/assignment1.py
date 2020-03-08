@@ -102,12 +102,16 @@ def basic_image_processing(video, output_path):
                 out_blur.write(frame)
 
             elif 16 > frame_timestamp > 12:
-                # Grab red object in RGB(object in white, background in black
-                # Transform to grayscale
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                # Apply binary threshold
-                ret, frame = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY_INV)
-                out_grab.write(frame)
+                # Grab red object in RGB space
+                lower = [17, 15, 100]
+                upper = [50, 56, 200]
+                # create NumPy arrays from the boundaries
+                lower = np.array(lower, dtype="uint8")
+                upper = np.array(upper, dtype="uint8")
+                # find the colors within the specified boundaries and apply the mask
+                mask = cv2.inRange(frame, lower, upper)
+                output = cv2.bitwise_and(frame, frame, mask=mask)
+                out_grab.write(output)
 
             elif 18 > frame_timestamp > 16:
                 # Grab red object(object in white, background in black)
@@ -119,7 +123,6 @@ def basic_image_processing(video, output_path):
                 mask_upper = cv2.inRange(frame_hsv, (175, 50, 20), (180, 255, 255))
 
                 # Merge the mask
-                # It is a B&W image
                 frame = cv2.bitwise_or(mask_lower, mask_upper)
                 out_grab.write(frame)
 
@@ -133,7 +136,6 @@ def basic_image_processing(video, output_path):
                 mask_upper = cv2.inRange(frame_hsv, (175, 50, 20), (180, 255, 255))
 
                 # Merge the mask
-                # It is a B&W image
                 frame = cv2.bitwise_or(mask_lower, mask_upper)
                 kernel = np.ones((5, 5), np.uint8)
                 frame = cv2.morphologyEx(frame, cv2.MORPH_OPEN, kernel)
@@ -227,9 +229,9 @@ def intensity_detection(out, frame, dp, min_distance):
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers
         circles = np.round(circles[0, :]).astype("int")
-        # # loop over the (x, y) coordinates and radius of the circles
+        # loop over the (x, y) coordinates and radius of the circles
         for (x, y, r) in circles:
-            # draw a rectangle around the detected circle
+            # take the detected circle area as the roi
             roi = roi[y:y + r, x:x + r].copy()
 
         # roi is the object or region of object we need to find
@@ -347,7 +349,6 @@ def carte_blanche(video, output_path):
 
             # Apply effect based on current timestamp
             if 10 > frame_timestamp >= 0:
-                # detect_face(frame)
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
                 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -365,7 +366,6 @@ def carte_blanche(video, output_path):
                 out.write(frame)
 
             elif 14 > frame_timestamp > 10:
-                # detect_face(frame)
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
                 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -378,10 +378,18 @@ def carte_blanche(video, output_path):
                     # I don't have more than two eyes
                     eyes = eyes[0:2]
                     for (ex, ey, ew, eh) in eyes:
-                        # Change eye color with added white filter
+                        # Extract the eye region
                         sub_img = roi_color[ey:ey + eh, ex:ex + ew]
-                        white_rect = np.ones(sub_img.shape, dtype=np.uint8) * 255
-                        res = cv2.addWeighted(sub_img, 0.5, white_rect, 0.5, 1.0)
+
+                        # Initialize black image of same dimensions for drawing the rectangles
+                        blk = np.zeros(sub_img.shape, np.uint8)
+
+                        # Draw colored rectangles with random color
+                        cv2.rectangle(blk, (0, 0), (ex + ew, ey + eh), (randrange(256), randrange(256), randrange(256)), cv2.FILLED)
+
+                        # Generate result by blending both images (opacity of rectangle image is 0.25 = 25 %)
+                        res = cv2.addWeighted(sub_img, 1.0, blk, 0.25, 1)
+
                         roi_color[ey:ey+eh, ex:ex+ew] = res
 
                         cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)

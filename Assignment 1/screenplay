@@ -1,0 +1,8 @@
+0-4: map(used for B&W)
+4-12: wall(used for smoothing)
+12-20: chair and mug(used for color grabbing)
+20-25: brick wall(used for edge detection)
+25-35: assortment of circular shapes(for circle detection)
+35-37: one moving circle
+37-40: one static circle
+40-60: my face. opening and closing eyes. closer and far away.
