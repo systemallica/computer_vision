@@ -58,30 +58,30 @@ Horizontal Sobel edge detection. k=3.
 00:00:23,500 --> 00:00:28,000
 Both edges Sobel. k=3.
 
-17
+16
 00:00:28,000 --> 00:00:30,000
 Hough circle detection. dp=1.2. min_distance=300. param2=50. minRadius=30. maxRadius=100.
 
-18
+17
 00:00:30,000 --> 00:00:32,500
 Hough circle detection. dp=1.2. min_distance=400. param2=100. minRadius=100. maxRadius=200.
 
-19
+18
 00:00:32,500 --> 00:00:35,150
 Hough circle detection. dp=1.2. min_distance=250. param2=150. minRadius=100. maxRadius=180.
 
-20
-00:00:35,150 --> 00:00:38,400
+19
+00:00:35,150 --> 00:00:37,600
 Detecting circle in motion.
 
-21
-00:00:38,400 --> 00:00:41,350
+20
+00:00:37,600 --> 00:00:40,700
 Likelihood intensity values(Back Projection).
 
 21
-00:00:41,40 --> 00:00:53,000
+00:00:40,700 --> 00:00:53,000
 Face and eyes tracking.
 
-21
-00:00:53,000 --> 00:01:01,000
-Eyes' area color change(party mode).
+22
+00:00:53,000 --> 00:01:00,000
+Eyes area color change(party mode).

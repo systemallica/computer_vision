@@ -190,7 +190,7 @@ def object_detection(video, output_path):
             elif 32.5 > frame_timestamp > 30:
                 circle_detection(out_hough, frame, 1.2, 400, 100, 100, 200)
 
-            elif 35.25 > frame_timestamp > 32.5:
+            elif 35.15 > frame_timestamp > 32.5:
                 circle_detection(out_hough, frame, 1.2, 250, 120, 100, 180)
 
             elif 38.4 > frame_timestamp > 35.15:
