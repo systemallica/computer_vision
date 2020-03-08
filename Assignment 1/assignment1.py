@@ -11,8 +11,8 @@ COLOR_VIDEO = 1
 
 
 def process_video():
+    input_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/input.mp4'
     output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
-    input_path = 'input.mp4'
 
     # Read video file
     video = cv2.VideoCapture(input_path)
@@ -155,18 +155,15 @@ def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (resolution_x, resolution_y), BW_VIDEO)
     out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
-    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
+    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (resolution_x, resolution_y), BW_VIDEO)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(resolution_x)
-        height = int(resolution_y)
-        dim = (width, height)
         # resize image
-        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (resolution_x, resolution_y), interpolation=cv2.INTER_AREA)
 
         if ret:
             # Get timestamp of current frame (in seconds)
@@ -183,44 +180,43 @@ def object_detection(video, output_path):
             elif 23.5 > frame_timestamp > 22.75:
                 edge_detection(out_sobel, frame, 3, 'vertical')
 
-            elif 25 > frame_timestamp > 23.5:
+            elif 28 > frame_timestamp > 23.5:
                 edge_detection(out_sobel, frame, 3, 'combined')
 
-            elif 27.5 > frame_timestamp > 25:
-                circle_detection(out_hough, frame, 1.2, 300)
-
-            elif 30 > frame_timestamp > 27.5:
-                circle_detection(out_hough, frame, 1.2, 400)
+            elif 30 > frame_timestamp > 28:
+                out_sobel.release()
+                circle_detection(out_hough, frame, 1.2, 300, 50, 30, 100)
 
             elif 32.5 > frame_timestamp > 30:
-                circle_detection(out_hough, frame, 1.2, 450)
+                circle_detection(out_hough, frame, 1.2, 400, 100, 100, 200)
 
-            elif 35 > frame_timestamp > 32.5:
-                circle_detection(out_hough, frame, 1.2, 500)
+            elif 35.25 > frame_timestamp > 32.5:
+                circle_detection(out_hough, frame, 1.2, 250, 120, 100, 180)
 
-            elif 37 > frame_timestamp > 35:
-                object_highlight(out_hough, frame, 1.2, 400)
+            elif 38.4 > frame_timestamp > 35.15:
+                object_highlight(out_hough, frame, 1.2, 500)
 
-            elif 39.8 > frame_timestamp > 37:
-                intensity_detection(out_intensity, frame, 1.2, 400)
+            elif 41 > frame_timestamp > 38.4:
+                out_hough.release()
+                intensity_detection(out_intensity, frame, 1.2, 500)
 
-            elif frame_timestamp > 39.8:
+            elif frame_timestamp > 41:
                 break
         else:
             break
 
-    out_sobel.release()
-    out_hough.release()
     out_intensity.release()
 
 
 def intensity_detection(out, frame, dp, min_distance):
-    # resize to 'square' image so intensity detection works
-    frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
+    # Remove noise
+    frame = cv2.GaussianBlur(frame, (3, 3), 0)
+    # Create copy of frame
     roi = frame.copy()
+    # Grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40,
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=120, minRadius=130,
                                maxRadius=200)
     # ensure at least some circles were found
     if circles is not None:
@@ -233,36 +229,23 @@ def intensity_detection(out, frame, dp, min_distance):
 
         # roi is the object or region of object we need to find
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-        # target is the image we search in
-        target = frame
-        hsvt = cv2.cvtColor(target, cv2.COLOR_BGR2HSV)
-
+        hsvt = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         # calculating object histogram
-        M = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
+        histogram = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
         # normalize histogram and apply backprojection
-        cv2.normalize(M, M, 0, 255, cv2.NORM_MINMAX)
-        B = cv2.calcBackProject([hsvt], [0, 1], M, [0, 180, 0, 256], 1)
-        cv2.normalize(B, B, 0, 255, cv2.NORM_MINMAX)
-        # Use thresholding to segment out the region
-        ret, thresh = cv2.threshold(B, 10, 255, 0)
-
-        # Overlay images using bitwise_and
-        thresh = cv2.merge((thresh, thresh, thresh))
-        res = cv2.bitwise_and(target, thresh)
-
-        # Resize back to original size
-        res = cv2.resize(res, (resolution_x, resolution_y), interpolation=cv2.INTER_AREA)
+        cv2.normalize(histogram, histogram, 0, 255, cv2.NORM_MINMAX)
+        backprojection = cv2.calcBackProject([hsvt], [0, 1], histogram, [0, 180, 0, 256], 1)
 
         # show the output image
-        out.write(res)
+        out.write(backprojection)
 
 
 def object_highlight(out, frame, dp, min_distance):
     output = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40,
-                               maxRadius=200)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=120, minRadius=10,
+                               maxRadius=80)
     # ensure at least some circles were found
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers
@@ -300,12 +283,12 @@ def edge_detection(out, frame, k, direction):
         out.write(grad)
 
 
-def circle_detection(out, frame, dp, min_distance):
+def circle_detection(out, frame, dp, min_distance, param2, min_radius, max_radius):
     output = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=25, minRadius=40,
-                               maxRadius=200)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, min_distance, param1=40, param2=param2, minRadius=min_radius,
+                               maxRadius=max_radius)
     # ensure at least some circles were found
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers

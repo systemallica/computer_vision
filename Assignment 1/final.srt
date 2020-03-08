@@ -60,22 +60,22 @@ Both edges Sobel. k=3.
 
 17
 00:00:28,000 --> 00:00:30,000
-Hough circle detection. dp=1.2. min_distance=400.
+Hough circle detection. dp=1.2. min_distance=300. param2=50. minRadius=30. maxRadius=100.
 
 18
 00:00:30,000 --> 00:00:32,500
-Hough circle detection. dp=1.2. min_distance=450.
+Hough circle detection. dp=1.2. min_distance=400. param2=100. minRadius=100. maxRadius=200.
 
 19
-00:00:32,500 --> 00:00:35,000
-Hough circle detection. dp=1.2. min_distance=500.
+00:00:32,500 --> 00:00:35,150
+Hough circle detection. dp=1.2. min_distance=250. param2=150. minRadius=100. maxRadius=180.
 
 20
-00:00:35,000 --> 00:00:37,000
-Object highlight.
+00:00:35,150 --> 00:00:38,400
+Detecting circle in motion.
 
 21
-00:00:37,000 --> 00:00:40,000
+00:00:38,400 --> 00:00:41,000
 Likelihood intensity values(Back Projection).
 
 21
