@@ -44,11 +44,11 @@ Improved grabbing red object HSV.
 
 12
 00:00:20,000 --> 00:00:21,250
-Horizontal Sobel edge detection. k=3.
+Horizontal Sobel edge detection. k=1.
 
 13
 00:00:21,250 --> 00:00:22,750
-Horizontal Sobel edge detection. k=5.
+Horizontal Sobel edge detection. k=3.
 
 14
 00:00:22,750 --> 00:00:23,500
@@ -56,7 +56,7 @@ Vertical Sobel edge detection. k=3.
 
 15
 00:00:23,500 --> 00:00:25,000
-Vertical Sobel edge detection. k=5.
+Both edges Sobel. k=3.
 
 16
 00:00:25,000 --> 00:00:27,500
