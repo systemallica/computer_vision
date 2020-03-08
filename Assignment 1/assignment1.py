@@ -3,6 +3,11 @@ import cv2
 import numpy as np
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 
+resolution_x = 1024
+resolution_y = 576
+BW_VIDEO = 0
+COLOR_VIDEO = 1
+
 
 def process_video():
     output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
@@ -31,20 +36,20 @@ def process_video():
 
 def basic_image_processing(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (1024, 576), 1)
-    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (1024, 576), 0)
-    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (1024, 576), 1)
-    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (1024, 576), 0)
-    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (1024, 576), 1)
-    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (1024, 576), 0)
+    out1 = cv2.VideoWriter(output_path + '/1.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
+    out2 = cv2.VideoWriter(output_path + '/2.mp4', fourcc, 30.0, (resolution_x, resolution_y), BW_VIDEO)
+    out3 = cv2.VideoWriter(output_path + '/3.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
+    out4 = cv2.VideoWriter(output_path + '/4.mp4', fourcc, 30.0, (resolution_x, resolution_y), BW_VIDEO)
+    out_blur = cv2.VideoWriter(output_path + '/5.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
+    out_grab = cv2.VideoWriter(output_path + '/6.mp4', fourcc, 30.0, (resolution_x, resolution_y), BW_VIDEO)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(1024)
-        height = int(576)
+        width = int(resolution_x)
+        height = int(resolution_y)
         dim = (width, height)
         # resize image
         frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
@@ -149,17 +154,17 @@ def basic_image_processing(video, output_path):
 
 def object_detection(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (1024, 576), 0)
-    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (1024, 576), 1)
-    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (1024, 576), 1)
+    out_sobel = cv2.VideoWriter(output_path + '/7.mp4', fourcc, 30.0, (resolution_x, resolution_y), BW_VIDEO)
+    out_hough = cv2.VideoWriter(output_path + '/8.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
+    out_intensity = cv2.VideoWriter(output_path + '/9.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
 
     # Read video
     while True:
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(1024)
-        height = int(576)
+        width = int(resolution_x)
+        height = int(resolution_y)
         dim = (width, height)
         # resize image
         frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
@@ -171,16 +176,16 @@ def object_detection(video, output_path):
 
             # Apply effect based on current timestamp
             if 21.25 > frame_timestamp > 20:
-                edge_detection(out_sobel, frame, 3, 'horizontal')
+                edge_detection(out_sobel, frame, 1, 'horizontal')
 
             elif 22.75 > frame_timestamp > 21.25:
-                edge_detection(out_sobel, frame, 5, 'horizontal')
+                edge_detection(out_sobel, frame, 3, 'horizontal')
 
             elif 23.5 > frame_timestamp > 22.75:
                 edge_detection(out_sobel, frame, 3, 'vertical')
 
             elif 25 > frame_timestamp > 23.5:
-                edge_detection(out_sobel, frame, 5, 'vertical')
+                edge_detection(out_sobel, frame, 3, 'combined')
 
             elif 27.5 > frame_timestamp > 25:
                 circle_detection(out_hough, frame, 1.2, 300)
@@ -247,7 +252,7 @@ def intensity_detection(out, frame, dp, min_distance):
         res = cv2.bitwise_and(target, thresh)
 
         # Resize back to original size
-        res = cv2.resize(res, (1024, 576), interpolation=cv2.INTER_AREA)
+        res = cv2.resize(res, (resolution_x, resolution_y), interpolation=cv2.INTER_AREA)
 
         # show the output image
         out.write(res)
@@ -272,27 +277,28 @@ def object_highlight(out, frame, dp, min_distance):
 
 
 def edge_detection(out, frame, k, direction):
-    # Sobel horizontal edge detection
-    # Converting to gray scale
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # Sobel edge detection
     # Remove noise
     frame = cv2.GaussianBlur(frame, (3, 3), 0)
+    # Converting to gray scale
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # Detect edges
-    frame1 = cv2.Sobel(frame, cv2.CV_64F, 0, 1, ksize=k)
-    frame2 = cv2.Sobel(frame, cv2.CV_64F, 1, 0, ksize=k)
+    frame1 = cv2.Sobel(frame, cv2.CV_16S, 0, 1, ksize=k, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+    frame2 = cv2.Sobel(frame, cv2.CV_16S, 1, 0, ksize=k, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 
-    # Take absolute and convert back to 8U so we can write it
+    # Convert back to 8U so we can write it
     # Vertical
-    frame1 = np.absolute(frame1)
-    frame1 = np.uint8(frame1)
+    abs_grad_y = cv2.convertScaleAbs(frame1)
     # Horizontal
-    frame2 = np.absolute(frame2)
-    frame2 = np.uint8(frame2)
+    abs_grad_x = cv2.convertScaleAbs(frame2)
 
     if direction == 'vertical':
-        out.write(frame1)
+        out.write(abs_grad_y)
     elif direction == 'horizontal':
-        out.write(frame2)
+        out.write(abs_grad_x)
+    else:
+        grad = cv2.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)
+        out.write(grad)
 
 
 def circle_detection(out, frame, dp, min_distance):
@@ -315,7 +321,7 @@ def circle_detection(out, frame, dp, min_distance):
 
 def carte_blanche(video, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_path + '/10.mp4', fourcc, 30.0, (1024, 576), 1)
+    out = cv2.VideoWriter(output_path + '/10.mp4', fourcc, 30.0, (resolution_x, resolution_y), COLOR_VIDEO)
     # Pre-trained Cascade Classifier models for face and eye detection
     # Path depends on OpenCV installation directory
     face_cascade_name = '/Users/systemallica/anaconda3/lib/python3.7/site-packages/cv2/data/haarcascade_frontalface_default.xml'
@@ -328,8 +334,8 @@ def carte_blanche(video, output_path):
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(1024)
-        height = int(576)
+        width = int(resolution_x)
+        height = int(resolution_y)
         dim = (width, height)
         # resize image
         frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
