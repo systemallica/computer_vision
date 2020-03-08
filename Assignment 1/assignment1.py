@@ -46,11 +46,8 @@ def basic_image_processing(video, output_path):
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(resolution_x)
-        height = int(resolution_y)
-        dim = (width, height)
         # resize image
-        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (resolution_x, resolution_y), interpolation=cv2.INTER_AREA)
 
         if ret:
             # Get timestamp of current frame (in seconds)
@@ -110,6 +107,7 @@ def basic_image_processing(video, output_path):
                 mask = cv2.inRange(frame, lower, upper)
                 output = cv2.bitwise_and(frame, frame, mask=mask)
                 output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+                output = cv2.threshold(output, 10, 255, cv2.THRESH_BINARY)[1]
                 out_grab.write(output)
 
             elif 18 > frame_timestamp > 16:
@@ -335,11 +333,8 @@ def carte_blanche(video, output_path):
         # Capture frame-by-frame
         ret, frame = video.read()
 
-        width = int(resolution_x)
-        height = int(resolution_y)
-        dim = (width, height)
         # resize image
-        frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (resolution_x, resolution_y), interpolation=cv2.INTER_AREA)
 
         if ret:
             # Get timestamp of current frame (in seconds)
