@@ -196,11 +196,11 @@ def object_detection(video, output_path):
             elif 38.4 > frame_timestamp > 35.15:
                 object_highlight(out_hough, frame, 1.2, 500)
 
-            elif 41 > frame_timestamp > 38.4:
+            elif 41.40 > frame_timestamp > 38.4:
                 out_hough.release()
                 intensity_detection(out_intensity, frame, 1.2, 500)
 
-            elif frame_timestamp > 41:
+            elif frame_timestamp > 41.40:
                 break
         else:
             break
@@ -325,7 +325,7 @@ def carte_blanche(video, output_path):
             print(frame_timestamp)
 
             # Apply effect based on current timestamp
-            if 10 > frame_timestamp >= 0:
+            if 53 > frame_timestamp >= 41.40:
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
                 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -342,7 +342,7 @@ def carte_blanche(video, output_path):
 
                 out.write(frame)
 
-            elif 14 > frame_timestamp > 10:
+            elif 61 > frame_timestamp > 53:
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
                 faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -373,7 +373,7 @@ def carte_blanche(video, output_path):
 
                 out.write(frame)
 
-            elif frame_timestamp > 14:
+            elif frame_timestamp > 61:
                 break
 
     out.release()

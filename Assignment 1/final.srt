@@ -75,13 +75,13 @@ Hough circle detection. dp=1.2. min_distance=250. param2=150. minRadius=100. max
 Detecting circle in motion.
 
 21
-00:00:38,400 --> 00:00:41,000
+00:00:38,400 --> 00:00:41,350
 Likelihood intensity values(Back Projection).
 
 21
-00:00:40,000 --> 00:00:53,000
+00:00:41,40 --> 00:00:53,000
 Face and eyes tracking.
 
 21
-00:00:53,000 --> 00:01:00,000
+00:00:53,000 --> 00:01:01,000
 Eyes' area color change(party mode).
