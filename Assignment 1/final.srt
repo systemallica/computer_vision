@@ -11,11 +11,11 @@ B&W
 Color
 
 4
-00:00:03,000 --> 00:00:04,000
+00:00:03,000 --> 00:00:03,750
 B&W
 
 5
-00:00:04,000 --> 00:00:06,000
+00:00:03,750 --> 00:00:06,000
 Gaussian Blur. Kernel size: 11.
 
 6
@@ -27,11 +27,11 @@ Gaussian Blur. Kernel size: 19.
 Gaussian Blur. Kernel size: 29.
 
 8
-00:00:10,000 --> 00:00:12,000
+00:00:10,000 --> 00:00:11,500
 Bilateral filter(edges are preserved).
 
 9
-00:00:12,000 --> 00:00:16,000
+00:00:11,500 --> 00:00:16,000
 Grabbing red object RGB.
 
 10
@@ -88,4 +88,4 @@ Face and eyes tracking.
 
 21
 00:00:53,000 --> 00:01:00,000
-Eyes' area color change.
+Eyes' area color change(party mode).

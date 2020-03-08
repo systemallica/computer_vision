@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 from moviepy.editor import VideoFileClip, concatenate_videoclips
+from random import randrange
 
 resolution_x = 1024
 resolution_y = 576
@@ -11,24 +12,21 @@ COLOR_VIDEO = 1
 
 def process_video():
     output_path = '/Users/systemallica/Downloads/KU Leuven/Computer Vision/Assignment 1/output'
-    input_path_1 = 'video3.mp4'
-    input_path_2 = 'video4.mp4'
+    input_path = 'input.mp4'
 
     # Read video file
-    video_1 = cv2.VideoCapture(input_path_1)
-    video_2 = cv2.VideoCapture(input_path_2)
+    video = cv2.VideoCapture(input_path)
 
     # Check if camera opened successfully
-    if not video_1.isOpened() or not video_2.isOpened():
+    if not video.isOpened():
         print("Error opening video")
 
-    basic_image_processing(video_1, output_path)
-    object_detection(video_1, output_path)
-    carte_blanche(video_2, output_path)
+    basic_image_processing(video, output_path)
+    object_detection(video, output_path)
+    carte_blanche(video, output_path)
     join_videos(output_path)
 
-    video_1.release()
-    video_2.release()
+    video.release()
 
     # Closes all the frames
     cv2.destroyAllWindows()
@@ -73,12 +71,12 @@ def basic_image_processing(video, output_path):
                 # Color
                 out3.write(frame)
 
-            elif 4 > frame_timestamp > 3:
+            elif 3.75 > frame_timestamp > 3:
                 # Black and white
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 out4.write(frame)
 
-            elif 6 > frame_timestamp > 4:
+            elif 6 > frame_timestamp > 3.75:
                 # Gaussian smoothing
                 kernel_size = 11
                 frame = cv2.GaussianBlur(frame, (kernel_size, kernel_size), 0)
@@ -96,12 +94,12 @@ def basic_image_processing(video, output_path):
                 frame = cv2.GaussianBlur(frame, (kernel_size, kernel_size), 0)
                 out_blur.write(frame)
 
-            elif 12 > frame_timestamp > 10:
+            elif 11.5 > frame_timestamp > 10:
                 # Bilateral smoothing
                 frame = cv2.bilateralFilter(frame, 20, 100, 100)
                 out_blur.write(frame)
 
-            elif 16 > frame_timestamp > 12:
+            elif 16 > frame_timestamp > 11.5:
                 # Grab red object in RGB space
                 lower = [17, 15, 100]
                 upper = [50, 56, 200]
@@ -111,6 +109,7 @@ def basic_image_processing(video, output_path):
                 # find the colors within the specified boundaries and apply the mask
                 mask = cv2.inRange(frame, lower, upper)
                 output = cv2.bitwise_and(frame, frame, mask=mask)
+                output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
                 out_grab.write(output)
 
             elif 18 > frame_timestamp > 16:
@@ -141,7 +140,7 @@ def basic_image_processing(video, output_path):
                 frame = cv2.morphologyEx(frame, cv2.MORPH_OPEN, kernel)
                 out_grab.write(frame)
 
-            else:
+            elif frame_timestamp > 20:
                 break
         else:
             break
@@ -388,7 +387,7 @@ def carte_blanche(video, output_path):
                         cv2.rectangle(blk, (0, 0), (ex + ew, ey + eh), (randrange(256), randrange(256), randrange(256)), cv2.FILLED)
 
                         # Generate result by blending both images (opacity of rectangle image is 0.25 = 25 %)
-                        res = cv2.addWeighted(sub_img, 1.0, blk, 0.25, 1)
+                        res = cv2.addWeighted(sub_img, 1.0, blk, 0.5, 1)
 
                         roi_color[ey:ey+eh, ex:ex+ew] = res
 
